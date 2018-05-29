@@ -40,6 +40,8 @@ cardian_total = 1
 cardian_number = 1
 new_cardian_data = true
 new_input = {}
+--os.execute(PATH_TO_CARDIAN_BOT_FOLDER:sub(1,2) .. ' && cd '.. PATH_TO_CARDIAN_BOT_FOLDER ..' && luvit cardian_bot.lua')
+windower.execute(file_path .. 'discord_bot_start.bat')
 
 --Runs upon receipt of message
 function display_message (message, m_sender, m_type, m_gm)
@@ -179,9 +181,24 @@ function display_text(original, modified, original_mode, modified_mode, blocked)
 	end
 end
 
+function cardian_unload()
+	print("Cardian unloaded!")
+	local exists = files.exists('to_discord.txt')
+	if exists ~= false then
+		f=io.open(file_path .. "to_discord.txt","a")
+		--Formats send and shout to single line including routing info and Discord formatting data
+		f:write("CARDIANADDONUNLOADED")
+		f:close()
+	else
+		f = files.new('to_discord.txt')
+		f:write("CARDIANADDONUNLOADED")
+	end
+end
+
 --Windower event scheduling. Tells the add-on what to look for and what to do if it sees it
 windower.register_event('time change', function(new, old)
 	check_timer(new, old)
 end)
 windower.register_event('chat message', display_message)
 windower.register_event('incoming text', display_text)
+windower.register_event('unload', cardian_unload)
