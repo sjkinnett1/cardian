@@ -26,7 +26,7 @@
 
 _addon.name = 'Cardian'
 _addon.author = 'Stephen Kinnett'
-_addon.version = '0.0.0.1'
+_addon.version = '0.0.0.2'
 
 local files = require('files')
 --Calculates local folder based upon file path minus file name
@@ -40,6 +40,8 @@ cardian_total = 1
 cardian_number = 1
 new_cardian_data = true
 new_input = {}
+screenshot_name = nil
+
 --os.execute(PATH_TO_CARDIAN_BOT_FOLDER:sub(1,2) .. ' && cd '.. PATH_TO_CARDIAN_BOT_FOLDER ..' && luvit cardian_bot.lua')
 windower.execute(file_path .. 'discord_bot_start.bat')
 
@@ -107,7 +109,6 @@ end
 
 --Opens to_ffxi file and processes data
 function check_file()
-	tmp = os.date("*t")
 	local f=io.open(file_path .. "to_ffxi.txt","r")
 	if f~=nil then
 		for line in f:lines() do
@@ -146,6 +147,7 @@ function process_new_input()
 		duplicate = false
 		--If message is about new cardian order, takes in new data and begins switch to new timings
 		--Handles (skips) duplicate messages
+		if line == "SCREENSHOTREQUESTED" then print("SCREENSHOT REQUESTED!") screenshot() duplicate = true end
 		for k, log_line in pairs(chat_log) do
 			if log_line == line then duplicate = true end
 			if k > 5 then table.remove (chat_log, 1) end
@@ -181,17 +183,39 @@ function display_text(original, modified, original_mode, modified_mode, blocked)
 	end
 end
 
+function user_message(original, modified, blocked)
+	if original == "!screenshot" then screenshot() end
+end
+
 function cardian_unload()
 	print("Cardian unloaded!")
 	local exists = files.exists('to_discord.txt')
 	if exists ~= false then
 		f=io.open(file_path .. "to_discord.txt","a")
-		--Formats send and shout to single line including routing info and Discord formatting data
-		f:write("CARDIANADDONUNLOADED")
+		f:write("CARDIANADDONUNLOADED\n")
 		f:close()
 	else
 		f = files.new('to_discord.txt')
-		f:write("CARDIANADDONUNLOADED")
+		f:write("CARDIANADDONUNLOADED\n")
+	end
+end
+
+function screenshot()
+	tmp = os.date("*t")
+	screenshot_name = string.format('img_%04d%02d%02d_%02d%02d%02d', tmp.year, tmp.month, tmp.day, tmp.hour, tmp.min, tmp.sec)
+	windower.send_command("screenshot png hide")
+	coroutine.schedule(send_screenshot, 1)
+end
+
+function send_screenshot()
+	local exists = files.exists('to_discord.txt')
+	if exists ~= false then
+		f=io.open(file_path .. "to_discord.txt","a")
+		f:write("SCREENSHOTRETURNED".. screenshot_name .."\n")
+		f:close()
+	else
+		f = files.new('to_discord.txt')
+		f:write("SCREENSHOTRETURNED" .. screenshot_name .. "\n")
 	end
 end
 
@@ -199,6 +223,7 @@ end
 windower.register_event('time change', function(new, old)
 	check_timer(new, old)
 end)
+windower.register_event('outgoing text', user_message)
 windower.register_event('chat message', display_message)
 windower.register_event('incoming text', display_text)
 windower.register_event('unload', cardian_unload)
