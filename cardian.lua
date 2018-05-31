@@ -26,7 +26,7 @@
 
 _addon.name = 'Cardian'
 _addon.author = 'Stephen Kinnett'
-_addon.version = '0.0.0.2'
+_addon.version = '0.0.0.3'
 
 local files = require('files')
 --Calculates local folder based upon file path minus file name
@@ -41,6 +41,7 @@ cardian_number = 1
 new_cardian_data = true
 new_input = {}
 screenshot_name = nil
+player_name = windower.ffxi.get_player()['name']
 
 --os.execute(PATH_TO_CARDIAN_BOT_FOLDER:sub(1,2) .. ' && cd '.. PATH_TO_CARDIAN_BOT_FOLDER ..' && luvit cardian_bot.lua')
 windower.execute(file_path .. 'discord_bot_start.bat')
@@ -154,7 +155,9 @@ function process_new_input()
 		end
 		--Handles line if not duplicate data
 		if duplicate == false then
-			table.insert(chat_log, line)
+			if line:sub(1,3) == "/l " then
+				table.insert(chat_log, "<" .. player_name .. "> " .. line:sub(4))
+			end
 			windower.chat.input(line)
 		end
 		--Clears processed lines from the queue
@@ -174,12 +177,38 @@ function display_text(original, modified, original_mode, modified_mode, blocked)
 	if original_mode == 123 then
 		f=io.open(file_path .. "to_discord.txt","a")
 		if f ~= nil then
-			f:write("tl__**ERROR**__:  ```Your tell was not received. The recipient is either offline or changing areas.```\n")
+			f:write("tl__**ERROR**__:  ```" .. original .. "```\n")
 			f:close()
 		else
 			f = files.new('to_discord.txt')
-			f:write("tl__**ERROR**__:  ```Your tell was not received. The recipient is either offline or changing areas.```\n")
+			f:write("tl__**ERROR**__:  ```" .. original .. "```\n")
 		end
+	elseif original_mode == 6 then
+		duplicate = false
+		for k, log_line in pairs(chat_log) do
+			if log_line == modified:sub(4) then duplicate = true end
+			if k > 5 then table.remove (chat_log, 1) end
+		end
+		--Handles line if not duplicate data
+		if duplicate == false then
+			f=io.open(file_path .. "to_discord.txt","a")
+			if f ~= nil then
+				f:write("ls__**" .. player_name .. "**__:  ```" .. modified:sub(4):gsub("<(.-)> ", "") .. "```\n")
+				f:close()
+			else
+				f = files.new('to_discord.txt')
+				f:write("ls__**SYSTEM**__:  ```" .. modified:sub(4) .. "```\n")
+			end
+		end
+	else
+			-- f=io.open(file_path .. "to_discord.txt","a")
+		-- if f ~= nil then
+			-- f:write("tl__**SYSTEM**__:  ```" .. modified .. "```[" .. original_mode .. "]\n")
+			-- f:close()
+		-- else
+			-- f = files.new('to_discord.txt')
+			-- f:write("tl__**SYSTEM**__:  ```" .. modified .. "```[" .. original_mode .. "]\n")
+		-- end
 	end
 end
 
@@ -203,6 +232,7 @@ end
 function screenshot()
 	tmp = os.date("*t")
 	screenshot_name = string.format('img_%04d%02d%02d_%02d%02d%02d', tmp.year, tmp.month, tmp.day, tmp.hour, tmp.min, tmp.sec)
+	screenshot_name_delay_1 = string.format('img_%04d%02d%02d_%02d%02d%02d', tmp.year, tmp.month, tmp.day, tmp.hour, tmp.min, tmp.sec + 1)
 	windower.send_command("screenshot png hide")
 	coroutine.schedule(send_screenshot, 1)
 end
@@ -212,10 +242,12 @@ function send_screenshot()
 	if exists ~= false then
 		f=io.open(file_path .. "to_discord.txt","a")
 		f:write("SCREENSHOTRETURNED".. screenshot_name .."\n")
+		f:write("SCREENSHOTRETURNED".. screenshot_name_delay_1 .."\n")
 		f:close()
 	else
 		f = files.new('to_discord.txt')
 		f:write("SCREENSHOTRETURNED" .. screenshot_name .. "\n")
+		f:write("SCREENSHOTRETURNED".. screenshot_name_delay_1 .."\n")
 	end
 end
 
