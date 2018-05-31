@@ -35,12 +35,14 @@ file_path = string.gsub(file_path.source, "cardian.lua", "")
 file_path = file_path:sub(2)
 
 --Initialization variables
-local chat_log = {}
+chat_log = {}
+self_chat_log = nil
 cardian_total = 1
 cardian_number = 1
 new_cardian_data = true
 new_input = {}
 screenshot_name = nil
+screenshot_name_delay_1 = nil
 player_name = windower.ffxi.get_player()['name']
 
 --os.execute(PATH_TO_CARDIAN_BOT_FOLDER:sub(1,2) .. ' && cd '.. PATH_TO_CARDIAN_BOT_FOLDER ..' && luvit cardian_bot.lua')
@@ -156,7 +158,7 @@ function process_new_input()
 		--Handles line if not duplicate data
 		if duplicate == false then
 			if line:sub(1,3) == "/l " then
-				table.insert(chat_log, "<" .. player_name .. "> " .. line:sub(4))
+				self_chat_log = "<" .. player_name .. "> " .. line:sub(4)
 			end
 			windower.chat.input(line)
 		end
@@ -185,10 +187,7 @@ function display_text(original, modified, original_mode, modified_mode, blocked)
 		end
 	elseif original_mode == 6 then
 		duplicate = false
-		for k, log_line in pairs(chat_log) do
-			if log_line == modified:sub(4) then duplicate = true end
-			if k > 5 then table.remove (chat_log, 1) end
-		end
+		if self_chat_log == modified:sub(4) then duplicate = true end
 		--Handles line if not duplicate data
 		if duplicate == false then
 			f=io.open(file_path .. "to_discord.txt","a")
@@ -200,15 +199,6 @@ function display_text(original, modified, original_mode, modified_mode, blocked)
 				f:write("ls__**SYSTEM**__:  ```" .. modified:sub(4) .. "```\n")
 			end
 		end
-	else
-			-- f=io.open(file_path .. "to_discord.txt","a")
-		-- if f ~= nil then
-			-- f:write("tl__**SYSTEM**__:  ```" .. modified .. "```[" .. original_mode .. "]\n")
-			-- f:close()
-		-- else
-			-- f = files.new('to_discord.txt')
-			-- f:write("tl__**SYSTEM**__:  ```" .. modified .. "```[" .. original_mode .. "]\n")
-		-- end
 	end
 end
 
