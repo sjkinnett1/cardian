@@ -26,7 +26,7 @@
 
 _addon.name = 'Cardian'
 _addon.author = 'Stephen Kinnett'
-_addon.version = '0.0.0.3'
+_addon.version = '0.0.0.4'
 
 local files = require('files')
 --Calculates local folder based upon file path minus file name
