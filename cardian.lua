@@ -26,7 +26,7 @@
 
 _addon.name = 'Cardian'
 _addon.author = 'Stephen Kinnett'
-_addon.version = '0.0.0.4'
+_addon.version = '0.0.0.5'
 
 local files = require('files')
 --Calculates local folder based upon file path minus file name
@@ -147,6 +147,7 @@ end
 function process_new_input()
 	line = new_input[1]
 	if line ~= nil then
+		line = windower.to_shift_jis(line)
 		duplicate = false
 		--If message is about new cardian order, takes in new data and begins switch to new timings
 		--Handles (skips) duplicate messages
@@ -169,7 +170,7 @@ function process_new_input()
 				coroutine.close(input_timer)
 			end
 		--Schedules display of next line
-		input_timer = coroutine.schedule(process_new_input, 2)
+		input_timer = coroutine.schedule(process_new_input, 3.5)
 		end
 	end
 end
