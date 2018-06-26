@@ -177,7 +177,7 @@ end
 
 --Acts upon a failed /tell message
 function display_text(original, modified, original_mode, modified_mode, blocked)
-	if original_mode == 123 then
+	if original_mode == 123 and original:sub(3, -3) == 'Your tell was not received. The recipient is either offline or changing areas.' then
 		f=io.open(file_path .. "to_discord.txt","a")
 		if f ~= nil then
 			f:write("tl__**ERROR**__:  ```" .. original .. "```\n")
